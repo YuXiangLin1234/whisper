@@ -606,7 +606,9 @@ class DecodingTask:
             )
             tokens = (
                 [self.tokenizer.sot_prev]
-                + prompt_tokens[-(self.n_ctx // 2 - 1) :]
+                + self.options.initial_prompts
+                + prompt_tokens[-(self.n_ctx // 2) :]
+                # + prompt_tokens[-(self.n_ctx // 2 - 1) :]
                 + tokens
             )
 
@@ -824,3 +826,4 @@ def decode(
     result = DecodingTask(model, options).run(mel)
 
     return result[0] if single else result
+

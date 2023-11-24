@@ -200,10 +200,12 @@ def transcribe(
     all_tokens = []
     all_segments = []
     prompt_reset_since = 0
+    # initial_prompt_tokens
 
     if initial_prompt is not None:
         initial_prompt_tokens = tokenizer.encode(" " + initial_prompt.strip())
-        all_tokens.extend(initial_prompt_tokens)
+        # all_tokens.extend(initial_prompt_tokens)
+        initial_prompt_tokens = [initial_prompt_tokens]
     else:
         initial_prompt_tokens = []
 
@@ -237,6 +239,8 @@ def transcribe(
             mel_segment = pad_or_trim(mel_segment, N_FRAMES).to(model.device).to(dtype)
 
             decode_options["prompt"] = all_tokens[prompt_reset_since:]
+            # decode_options["prompt"] = all_tokens[0:]
+            decode_options["initial_prompts"] = initial_prompt_tokens
             result: DecodingResult = decode_with_fallback(mel_segment)
             tokens = torch.tensor(result.tokens)
 
