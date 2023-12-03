@@ -45,6 +45,7 @@ def transcribe(
     no_speech_threshold: Optional[float] = 0.6,
     condition_on_previous_text: bool = True,
     initial_prompt: Optional[str] = None,
+    my_task: Optional[str] = None,
     word_timestamps: bool = False,
     prepend_punctuations: str = "\"'“¿([{-",
     append_punctuations: str = "\"'.。,，!！?？:：”)]}、",
@@ -146,6 +147,9 @@ def transcribe(
         language=language,
         task=task,
     )
+    
+    if my_task:
+        task = my_task
 
     if word_timestamps and task == "translate":
         warnings.warn("Word-level timestamps on translations may not be reliable.")
@@ -205,7 +209,7 @@ def transcribe(
     if initial_prompt is not None:
         initial_prompt_tokens = tokenizer.encode(" " + initial_prompt.strip())
         # all_tokens.extend(initial_prompt_tokens)
-        initial_prompt_tokens = [initial_prompt_tokens]
+        initial_prompt_tokens = initial_prompt_tokens
     else:
         initial_prompt_tokens = []
 

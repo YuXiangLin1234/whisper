@@ -99,12 +99,14 @@ class DecodingOptions:
     # text or tokens to feed as the prompt or the prefix; for more info:
     # https://github.com/openai/whisper/discussions/117#discussioncomment-3727051
     prompt: Optional[Union[str, List[int]]] = None  # for the previous context
+    initial_prompts: Optional[Union[str, List[int]]] = None 
     prefix: Optional[Union[str, List[int]]] = None  # to prefix the current context
 
     # list of tokens ids (or comma-separated token ids) to suppress
     # "-1" will suppress a set of symbols as defined in `tokenizer.non_speech_tokens()`
     suppress_tokens: Optional[Union[str, Iterable[int]]] = "-1"
     suppress_blank: bool = True  # this will suppress blank outputs
+
 
     # timestamp sampling options
     without_timestamps: bool = False  # use <|notimestamps|> to sample text tokens only
@@ -598,16 +600,23 @@ class DecodingTask:
                 prefix_tokens = prefix_tokens[-max_prefix_len:]
             tokens = tokens + prefix_tokens
 
+        # self.options.initial_prompts = prompt
+        # self.options.prompts = 前面的時間 
         if prompt := self.options.prompt:
             prompt_tokens = (
                 self.tokenizer.encode(" " + prompt.strip())
                 if isinstance(prompt, str)
                 else prompt
             )
+            # print(len(prompt))
+            initial_prompts = self.options.initial_prompts[:223]
+            # print(len(initial_prompts))
+            # print(self.n_ctx)
+            # print("=" * 20)
             tokens = (
                 [self.tokenizer.sot_prev]
-                + self.options.initial_prompts
-                + prompt_tokens[-(self.n_ctx // 2) :]
+                + initial_prompts
+                + prompt_tokens[-(self.n_ctx // 2 - 1) + len(initial_prompts) - 1:]
                 # + prompt_tokens[-(self.n_ctx // 2 - 1) :]
                 + tokens
             )
