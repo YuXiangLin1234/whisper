@@ -602,24 +602,24 @@ class DecodingTask:
 
         # self.options.initial_prompts = prompt
         # self.options.prompts = 前面的時間 
-        if prompt := self.options.prompt:
-            prompt_tokens = (
-                self.tokenizer.encode(" " + prompt.strip())
-                if isinstance(prompt, str)
-                else prompt
-            )
-            # print(len(prompt))
-            initial_prompts = self.options.initial_prompts[:223]
-            # print(len(initial_prompts))
-            # print(self.n_ctx)
-            # print("=" * 20)
-            tokens = (
-                [self.tokenizer.sot_prev]
-                + initial_prompts
-                + prompt_tokens[-(self.n_ctx // 2 - 1) + len(initial_prompts) - 1:]
-                # + prompt_tokens[-(self.n_ctx // 2 - 1) :]
-                + tokens
-            )
+        # if prompt := self.options.prompt:
+        #     prompt_tokens = (
+        #         self.tokenizer.encode(" " + prompt.strip())
+        #         if isinstance(prompt, str)
+        #         else prompt
+        #     )
+        #     # print(len(prompt))
+        #     initial_prompts = self.options.initial_prompts[:223]
+        #     # print(len(initial_prompts))
+        #     # print(self.n_ctx)
+        #     # print("=" * 20)
+        #     tokens = (
+        #         [self.tokenizer.sot_prev]
+        #         + initial_prompts
+        #         + prompt_tokens[-(self.n_ctx // 2 - 1) + len(initial_prompts) - 1:]
+        #         # + prompt_tokens[-(self.n_ctx // 2 - 1) :]
+        #         + tokens
+        #     )
 
         return tuple(tokens)
 
