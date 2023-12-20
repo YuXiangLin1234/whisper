@@ -119,6 +119,7 @@ def transcribe(
     if dtype == torch.float32:
         decode_options["fp16"] = False
 
+    # In audio.py, line 110
     # Pad 30-seconds of silence to the input audio, for slicing
     mel = log_mel_spectrogram(audio, model.dims.n_mels, padding=N_SAMPLES)
     content_frames = mel.shape[-1] - N_FRAMES
@@ -171,6 +172,7 @@ def transcribe(
                 kwargs.pop("best_of", None)
 
             options = DecodingOptions(**kwargs, temperature=t)
+            #  In decoding.py, line 804
             decode_result = model.decode(segment, options)
 
             needs_fallback = False
@@ -242,8 +244,8 @@ def transcribe(
             segment_duration = segment_size * HOP_LENGTH / SAMPLE_RATE
             mel_segment = pad_or_trim(mel_segment, N_FRAMES).to(model.device).to(dtype)
 
+            # prompt are used in decoding
             decode_options["prompt"] = all_tokens[prompt_reset_since:]
-            # decode_options["prompt"] = all_tokens[0:]
             decode_options["initial_prompts"] = initial_prompt_tokens
             result: DecodingResult = decode_with_fallback(mel_segment)
             tokens = torch.tensor(result.tokens)
