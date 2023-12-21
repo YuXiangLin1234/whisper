@@ -639,8 +639,11 @@ class DecodingTask:
                 if isinstance(prompt, str)
                 else prompt
             )
-            initial_prompts = self.options.initial_prompts[:self.n_ctx // 2]
-            print("n_ctx", self.n_ctx)
+            initial_prompts = self.options.initial_prompts[:self.n_ctx // 2 - 1]
+            # self.n_ctx
+            # base => 448
+            # medium
+            # print("n_ctx", self.n_ctx)
             tokens = (
                 [self.tokenizer.sot_prev]
                 + initial_prompts
