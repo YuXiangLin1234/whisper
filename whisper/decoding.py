@@ -639,7 +639,8 @@ class DecodingTask:
                 if isinstance(prompt, str)
                 else prompt
             )
-            initial_prompts = self.options.initial_prompts[:self.n_ctx // 2]
+            # initial_prompts = self.options.initial_prompts[:self.n_ctx // 2]
+            initial_prompts = self.options.initial_prompts[:100]
             # self.n_ctx
             # base => 448
             # medium
