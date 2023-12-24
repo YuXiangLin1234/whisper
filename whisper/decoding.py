@@ -643,8 +643,9 @@ class DecodingTask:
             # initial_prompts = self.options.initial_prompts[:100]
             # self.n_ctx
             # base => 448
-            # medium
-            # print("n_ctx", self.n_ctx)
+            # medium => 448
+            # large =>
+            print("n_ctx", self.n_ctx)
             tokens = (
                 [self.tokenizer.sot_prev]
                 + initial_prompts
