@@ -197,6 +197,9 @@ def transcribe(
         return decode_result
 
     seek = 0
+    # Historical context
+    history_text = ""
+
     input_stride = exact_div(
         N_FRAMES, model.dims.n_audio_ctx
     )  # mel frames per output token: 2
@@ -220,11 +223,15 @@ def transcribe(
     ):
         tokens = tokens.tolist()
         text_tokens = [token for token in tokens if token < tokenizer.eot]
+        decoded_text = tokenizer.decode(text_tokens)
+        history_text += decoded_text
+        print(history_text)
+        
         return {
             "seek": seek,
             "start": start,
             "end": end,
-            "text": tokenizer.decode(text_tokens),
+            "text": decoded_text,
             "tokens": tokens,
             "temperature": result.temperature,
             "avg_logprob": result.avg_logprob,
