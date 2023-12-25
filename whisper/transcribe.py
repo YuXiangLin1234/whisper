@@ -224,9 +224,7 @@ def transcribe(
         tokens = tokens.tolist()
         text_tokens = [token for token in tokens if token < tokenizer.eot]
         decoded_text = tokenizer.decode(text_tokens)
-        history_text += decoded_text
-        print(history_text)
-        
+
         return {
             "seek": seek,
             "start": start,
@@ -302,6 +300,7 @@ def transcribe(
                             result=result,
                         )
                     )
+                    history_text += current_segments[-1]["text"] + " "
                     last_slice = current_slice
 
                 if single_timestamp_ending:
@@ -334,6 +333,7 @@ def transcribe(
                         result=result,
                     )
                 )
+                history_text += current_segments[-1]['text'] + " "
                 seek += segment_size
 
             if word_timestamps:
