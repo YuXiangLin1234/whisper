@@ -33,6 +33,16 @@ from .utils import (
 if TYPE_CHECKING:
     from .model import Whisper
 
+# For LLaMA summarization
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+
+_PROMPT_FOR_LLM = {
+    "summarization": f"<s>[INST] <<SYS>>\n\
+                        You are a helpful assistant. \
+                        Please summarize the given document. \
+                        <</SYS>>\n\n"
+                        # {transcription_large} [/INST]"
+}
 
 def transcribe(
     model: "Whisper",
@@ -49,6 +59,9 @@ def transcribe(
     word_timestamps: bool = False,
     prepend_punctuations: str = "\"'“¿([{-",
     append_punctuations: str = "\"'.。,，!！?？:：”)]}、",
+    language_model = None,
+    language_model_tokenizer = None,
+    language_model_task = "summarization",
     **decode_options,
 ):
     """
@@ -251,7 +264,19 @@ def transcribe(
 
             # prompt are used in decoding
             decode_options["prompt"] = all_tokens[prompt_reset_since:]
-            decode_options["initial_prompts"] = initial_prompt_tokens
+            
+            # TODO
+            if language_model is not None and language_model_tokenizer is not None:
+                decode_options["initial_prompts"] = initial_prompt_tokens
+            else:
+                prompt_for_llm = _PROMPT_FOR_LLM[language_model_task] + history_text + " [/INST]"
+                prompt_for_llm = tokenizer(prompt_for_llm , return_tensors="pt").to(model.device)
+                generate_ids = model.generate(prompt_for_llm.input_ids, max_length=200)
+                llm_response = tokenizer.decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
+                print(llm_response)
+                decode_options["initial_prompts"] = llm_response
+                             
+
             result: DecodingResult = decode_with_fallback(mel_segment)
             tokens = torch.tensor(result.tokens)
 
