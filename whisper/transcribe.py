@@ -222,12 +222,9 @@ def transcribe(
     all_tokens = []
     all_segments = []
     prompt_reset_since = 0
-    # initial_prompt_tokens
 
     if initial_prompt is not None:
         initial_prompt_tokens = tokenizer.encode(" " + initial_prompt.strip())
-        # all_tokens.extend(initial_prompt_tokens)
-        initial_prompt_tokens = initial_prompt_tokens
     else:
         initial_prompt_tokens = []
 
@@ -266,15 +263,15 @@ def transcribe(
             decode_options["prompt"] = all_tokens[prompt_reset_since:]
             
             # TODO
-            if condition_on_previous_text and language_model is not None and language_model_tokenizer is not None:
-                prompt_for_llm = _PROMPT_FOR_LLM[language_model_task] + history_text + " [/INST]"
-                prompt_for_llm = tokenizer(prompt_for_llm , return_tensors="pt").to(model.device)
-                generate_ids = model.generate(prompt_for_llm.input_ids, max_length=200)
-                llm_response = tokenizer.decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
-                print(llm_response)
-                decode_options["initial_prompts"] = llm_response
-            else:             
-                decode_options["initial_prompts"] = initial_prompt_tokens
+            # if condition_on_previous_text and language_model is not None and language_model_tokenizer is not None:
+            prompt_for_llm = _PROMPT_FOR_LLM[language_model_task] + history_text + " [/INST]"
+            prompt_for_llm = tokenizer(prompt_for_llm , return_tensors="pt").to(model.device)
+            generate_ids = model.generate(prompt_for_llm.input_ids, max_length=200)
+            llm_response = tokenizer.decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
+            print(llm_response)
+            decode_options["initial_prompts"] = llm_response
+            # else:             
+                # decode_options["initial_prompts"] = initial_prompt_tokens
 
             result: DecodingResult = decode_with_fallback(mel_segment)
             tokens = torch.tensor(result.tokens)
