@@ -268,6 +268,7 @@ def transcribe(
             prompt_for_llm = tokenizer(prompt_for_llm , return_tensors="pt").to(model.device)
             generate_ids = model.generate(prompt_for_llm.input_ids, max_length=200)
             llm_response = tokenizer.decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
+            print("&&&&&&&&&&&&&&")
             print(llm_response)
             decode_options["initial_prompts"] = llm_response
             # else:             
