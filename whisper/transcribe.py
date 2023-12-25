@@ -301,6 +301,7 @@ def transcribe(
                         )
                     )
                     history_text += current_segments[-1]["text"] + " "
+                    print("304", history_text)
                     last_slice = current_slice
 
                 if single_timestamp_ending:
@@ -334,6 +335,7 @@ def transcribe(
                     )
                 )
                 history_text += current_segments[-1]['text'] + " "
+                print(337, history_text)
                 seek += segment_size
 
             if word_timestamps:
