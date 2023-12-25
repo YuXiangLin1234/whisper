@@ -323,7 +323,7 @@ def transcribe(
                         )
                     )
                     history_text += current_segments[-1]["text"] + " "
-                    print("304", history_text)
+                    # print("304", history_text)
                     last_slice = current_slice
 
                 if single_timestamp_ending:
