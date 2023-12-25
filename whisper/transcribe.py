@@ -267,7 +267,7 @@ def transcribe(
                 prompt_for_llm = _PROMPT_FOR_LLM[language_model_task] + history_text + " [/INST]"
                 prompt_for_llm = language_model_tokenizer(prompt_for_llm , return_tensors="pt").to(model.device)
                 generate_ids = language_model.generate(prompt_for_llm.input_ids, max_length=200)
-                llm_response = language_model_tokenizer.decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
+                llm_response = language_model_tokenizer.decode(generate_ids[0], skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
                 print(llm_response)
                 decode_options["initial_prompts"] = llm_response
             else:             
