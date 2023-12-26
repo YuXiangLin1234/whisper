@@ -1,3 +1,9 @@
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+# Cannot find token
+os.environ['TRANSFORMERS_CACHE'] = '/work/yuxiang1234/cache'
+os.environ['HF_DATASETS_CACHE']="/work/yuxiang1234/cache"
+
 import argparse
 import os
 import traceback
@@ -61,6 +67,7 @@ def transcribe(
     append_punctuations: str = "\"'.。,，!！?？:：”)]}、",
     language_model = None,
     language_model_tokenizer = None,
+    language_model_pipeline = None,
     language_model_task = "summarization",
     **decode_options,
 ):
@@ -263,13 +270,42 @@ def transcribe(
             decode_options["prompt"] = all_tokens[prompt_reset_since:]
             
             # TODO
-            if condition_on_previous_text and language_model is not None and language_model_tokenizer is not None:
-                prompt_for_llm = _PROMPT_FOR_LLM[language_model_task] + history_text + " [/INST]"
-                prompt_for_llm = language_model_tokenizer(prompt_for_llm , return_tensors="pt").to(model.device)
-                generate_ids = language_model.generate(prompt_for_llm.input_ids, max_length=200)
-                llm_response = language_model_tokenizer.decode(generate_ids[0], skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
-                print(llm_response)
-                decode_options["initial_prompts"] = llm_response
+            if condition_on_previous_text and len(history_text) > 0:
+                if condition_on_previous_text and language_model is not None and language_model_tokenizer is not None:
+                    prompt_for_llm = _PROMPT_FOR_LLM[language_model_task] + history_text + " [/INST]"
+                    prompt_for_llm = language_model_tokenizer(prompt_for_llm , return_tensors="pt").to(model.device)
+                    generate_ids = language_model.generate(prompt_for_llm.input_ids, max_length=200)
+                    llm_response = language_model_tokenizer.decode(generate_ids[0], skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
+                    print(llm_response)
+                    decode_options["initial_prompts"] = llm_response
+                elif condition_on_previous_text and language_model_pipeline is not None:
+                    if language_model_task == "sum-1":
+                        system_message = "你是一個人工智慧助理，請給我這篇文章的摘要。"
+                    elif language_model_task == "sum-2":
+                        system_message = "請給我這篇文章的摘要，摘要中請盡可能保留文章中的專有名詞。"
+                    elif language_model_task == "sum-2":
+                        system_message = "請給我這篇文章的摘要，你可以以中文英文混合的方式描寫。"
+                    messages = [
+                        {
+                            "role": "system",
+                            # "content": "你是一個人工智慧助理，請你給我下面這篇文章的摘要。",
+                            "content": system_message,
+                        },
+                        {"role": "user", "content": "文章：" + history_text[-512:]},
+                    ]
+                    
+                    prompt = language_model_pipeline.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                    outputs = language_model_pipeline(prompt, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
+                    llm_response = outputs[0]["generated_text"].split("ASSISTANT: ")[-1]
+                    llm_response = llm_response.split("USER: ")[-1]
+                    print(llm_response)
+                    decode_options['initial_prompts'] = llm_response
+                    with open(f"log-{language_model_task}.txt", "a") as f: 
+                        print("--------- history txt -----------", file = f)
+                        print(history_text, file = f)
+                        print("--------- llm response ----------", file = f)
+                        print(llm_response, file = f)
+                        print("\n===========================================================\n", file = f)
             else:             
                 decode_options["initial_prompts"] = initial_prompt_tokens
 
@@ -322,7 +358,7 @@ def transcribe(
                         )
                     )
                     history_text += current_segments[-1]["text"] + " "
-                    print("304", history_text)
+                    # print("304", history_text)
                     last_slice = current_slice
 
                 if single_timestamp_ending:
