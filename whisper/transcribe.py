@@ -283,7 +283,7 @@ def transcribe(
                         system_message = "你是一個人工智慧助理，請給我這篇文章的摘要。"
                     elif language_model_task == "sum-2":
                         system_message = "請給我這篇文章的摘要，摘要中請盡可能保留文章中的專有名詞。"
-                    elif language_model_task == "sum-2":
+                    elif language_model_task == "sum-3":
                         system_message = "請給我這篇文章的摘要，你可以以中文英文混合的方式描寫。"
                     messages = [
                         {
