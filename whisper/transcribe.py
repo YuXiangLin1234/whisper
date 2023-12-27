@@ -285,6 +285,8 @@ def transcribe(
                         system_message = "請給我這篇文章的摘要，摘要中請盡可能保留文章中的專有名詞。"
                     elif language_model_task == "sum-3":
                         system_message = "請給我這篇文章的摘要，你可以以中文英文混合的方式描寫。"
+                    elif language_model_task == "sum-4":
+                        system_message = "請給我這篇文章的摘要，這篇文章中有一些錯字，你應該在摘要中把錯字改成對的字。"
                     messages = [
                         {
                             "role": "system",
