@@ -278,7 +278,7 @@ def transcribe(
                 decode_options["prompt"] = all_tokens[prompt_reset_since:]
             
             # TODO
-            if condition_on_previous_text and len(all_tokens) > 512 and language_model_type is not None:
+            if condition_on_previous_text and language_model_type is not None and len(all_tokens) > 512 :
                 fix_prompt = False
                 input = history_text.split()[-512:]
                 input = ' '.join(input)
@@ -327,6 +327,7 @@ def transcribe(
                     history_text = ""
                     prompt_reset_since = 0          
                     seek = 0
+                    last_speech_timestamp = 0.0
                     
                 with open(f"log-{language_model_type}-{language_model_task}.txt", "a") as f: 
                     print("--------- history txt -----------", file = f)
