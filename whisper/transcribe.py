@@ -306,7 +306,6 @@ def transcribe(
                     messages = [
                         {
                             "role": "system",
-                            # "content": "你是一個人工智慧助理，請你給我下面這篇文章的摘要。",
                             "content": system_message,
                         },
                         {"role": "user", "content": "文章：" + input},
@@ -316,7 +315,11 @@ def transcribe(
                     outputs = language_model_pipeline(prompt, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
                     llm_response = outputs[0]["generated_text"].split("ASSISTANT: ")[-1]
                     llm_response = llm_response.split("USER: ")[-1]
+                    print("--------- history txt -----------")
+                    print(history_text)
+                    print("--------- llm response ----------")
                     print(llm_response)
+                    print("\n===========================================================\n")
                     decode_options['prompt'] = llm_response
                 
                 if is_first_pass:
