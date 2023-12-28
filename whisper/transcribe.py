@@ -43,11 +43,18 @@ if TYPE_CHECKING:
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 _PROMPT_FOR_LLM = {
-    "summarization": f"<s>[INST] <<SYS>>\n\
+    "sum-1": f"<s>[INST] <<SYS>>\n\
                         You are a helpful assistant. \
                         Please summarize the given document. \
                         <</SYS>>\n\n"
                         # {transcription_large} [/INST]"
+                        ,
+    "sum-2": f"<s>[INST] <<SYS>>\n\
+                        You are a helpful assistant. \
+                        <</SYS>>\n\n \
+                        Please summarize the given document."
+                        # {transcription_large} [/INST]"
+                        
 }
 
 def transcribe(
@@ -67,6 +74,7 @@ def transcribe(
     append_punctuations: str = "\"'.。,，!！?？:：”)]}、",
     language_model = None,
     language_model_tokenizer = None,
+    language_model_type = None,
     language_model_pipeline = None,
     language_model_task = "summarization",
     **decode_options,
@@ -229,6 +237,10 @@ def transcribe(
     all_tokens = []
     all_segments = []
     prompt_reset_since = 0
+    # For first N tokens, we generate 1-st transcription and feed it 
+    is_first_pass = True
+    # 
+    fix_prompt = False
 
     if initial_prompt is not None:
         initial_prompt_tokens = tokenizer.encode(" " + initial_prompt.strip())
@@ -260,25 +272,29 @@ def transcribe(
     ) as pbar:
         last_speech_timestamp = 0.0
         while seek < content_frames:
-            time_offset = float(seek * HOP_LENGTH / SAMPLE_RATE)
-            mel_segment = mel[:, seek : seek + N_FRAMES]
-            segment_size = min(N_FRAMES, content_frames - seek)
-            segment_duration = segment_size * HOP_LENGTH / SAMPLE_RATE
-            mel_segment = pad_or_trim(mel_segment, N_FRAMES).to(model.device).to(dtype)
 
             # prompt are used in decoding
-            decode_options["prompt"] = all_tokens[prompt_reset_since:]
+            if not fix_prompt:
+                decode_options["prompt"] = all_tokens[prompt_reset_since:]
             
             # TODO
-            if condition_on_previous_text and len(history_text) > 0:
-                if condition_on_previous_text and language_model is not None and language_model_tokenizer is not None:
-                    prompt_for_llm = _PROMPT_FOR_LLM[language_model_task] + history_text + " [/INST]"
-                    prompt_for_llm = language_model_tokenizer(prompt_for_llm , return_tensors="pt").to(model.device)
+            if condition_on_previous_text and len(all_tokens) > 512 and language_model_type is not None:
+                fix_prompt = False
+                input = history_text.split()[-512:]
+                input = ' '.join(input)
+
+                if language_model_type == "llama":
+                    prompt_for_llm = _PROMPT_FOR_LLM[language_model_task] + input + " [/INST]"
+                    prompt_for_llm = language_model_tokenizer(prompt_for_llm , return_tensors="pt").to(language_model.device)
                     generate_ids = language_model.generate(prompt_for_llm.input_ids, max_length=200)
                     llm_response = language_model_tokenizer.decode(generate_ids[0], skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
                     print(llm_response)
-                    decode_options["initial_prompts"] = llm_response
-                elif condition_on_previous_text and language_model_pipeline is not None:
+                    llm_response = outputs[0]["generated_text"].split("ASSISTANT: ")[-1]
+                    llm_response = llm_response.split("USER: ")[-1]
+                    print(llm_response)
+                    decode_options['prompt'] = llm_response
+                    decode_options["prompt"] = llm_response
+                elif language_model_type == "taiwan-llama":
                     if language_model_task == "sum-1":
                         system_message = "你是一個人工智慧助理，請給我這篇文章的摘要。"
                     elif language_model_task == "sum-2":
@@ -293,7 +309,7 @@ def transcribe(
                             # "content": "你是一個人工智慧助理，請你給我下面這篇文章的摘要。",
                             "content": system_message,
                         },
-                        {"role": "user", "content": "文章：" + history_text[-512:]},
+                        {"role": "user", "content": "文章：" + input},
                     ]
                     
                     prompt = language_model_pipeline.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
@@ -301,15 +317,34 @@ def transcribe(
                     llm_response = outputs[0]["generated_text"].split("ASSISTANT: ")[-1]
                     llm_response = llm_response.split("USER: ")[-1]
                     print(llm_response)
-                    decode_options['initial_prompts'] = llm_response
-                    with open(f"log-{language_model_task}.txt", "a") as f: 
-                        print("--------- history txt -----------", file = f)
-                        print(history_text, file = f)
-                        print("--------- llm response ----------", file = f)
-                        print(llm_response, file = f)
-                        print("\n===========================================================\n", file = f)
-            else:             
-                decode_options["initial_prompts"] = initial_prompt_tokens
+                    decode_options['prompt'] = llm_response
+                
+                if is_first_pass:
+                    is_first_pass = False 
+                    fix_prompt = True
+                    all_tokens = []
+                    all_segments = []
+                    history_text = ""
+                    prompt_reset_since = 0          
+                    seek = 0
+                    
+                with open(f"log-{language_model_type}-{language_model_task}.txt", "a") as f: 
+                    print("--------- history txt -----------", file = f)
+                    print(history_text, file = f)
+                    print("--------- llm response ----------", file = f)
+                    print(llm_response, file = f)
+                    print("\n===========================================================\n", file = f)
+            elif initial_prompt is not None:             
+                decode_options["prompt"] = initial_prompt_tokens
+            # done in after
+            # elif not condition_on_previous_text:
+            #     prompt_reset_since = len(all_tokens)
+
+            time_offset = float(seek * HOP_LENGTH / SAMPLE_RATE)
+            mel_segment = mel[:, seek : seek + N_FRAMES]
+            segment_size = min(N_FRAMES, content_frames - seek)
+            segment_duration = segment_size * HOP_LENGTH / SAMPLE_RATE
+            mel_segment = pad_or_trim(mel_segment, N_FRAMES).to(model.device).to(dtype)
 
             result: DecodingResult = decode_with_fallback(mel_segment)
             tokens = torch.tensor(result.tokens)
@@ -394,7 +429,7 @@ def transcribe(
                     )
                 )
                 history_text += current_segments[-1]['text'] + " "
-                print(337, history_text)
+                # print(337, history_text)
                 seek += segment_size
 
             if word_timestamps:
