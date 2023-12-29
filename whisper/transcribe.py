@@ -314,13 +314,20 @@ def transcribe(
                     outputs = language_model_pipeline(prompt, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
                     llm_response = outputs[0]["generated_text"].split("ASSISTANT: ")[-1]
                     llm_response = llm_response.split("USER: ")[-1]
-                    print("--------- history txt -----------")
-                    print(history_text)
-                    print("--------- llm response ----------")
-                    print(llm_response)
-                    print("\n===========================================================\n")
-                    decode_options['prompt'] = llm_response
+                print("--------- history txt -----------")
+                print(input)
+                print("--------- llm response ----------")
+                print(llm_response)
+                print("\n===========================================================\n")
+                decode_options['prompt'] = llm_response
                 
+                with open(f"log-{language_model_type}-{language_model_task}.txt", "a") as f: 
+                    print("--------- history txt -----------", file = f)
+                    print(input, file = f)
+                    print("--------- llm response ----------", file = f)
+                    print(llm_response, file = f)
+                    print("\n===========================================================\n", file = f)
+
                 if is_first_pass:
                     is_first_pass = False 
                     fix_prompt = True
@@ -331,12 +338,6 @@ def transcribe(
                     seek = 0
                     last_speech_timestamp = 0.0
                     
-                with open(f"log-{language_model_type}-{language_model_task}.txt", "a") as f: 
-                    print("--------- history txt -----------", file = f)
-                    print(history_text, file = f)
-                    print("--------- llm response ----------", file = f)
-                    print(llm_response, file = f)
-                    print("\n===========================================================\n", file = f)
             elif initial_prompt is not None:             
                 decode_options["prompt"] = initial_prompt_tokens
             # done in after
