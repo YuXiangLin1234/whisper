@@ -287,7 +287,7 @@ def transcribe(
                     prompt_for_llm = _PROMPT_FOR_LLM[language_model_task] + input + " [/INST]"
                     prompt_for_llm = language_model_tokenizer(prompt_for_llm , return_tensors="pt").to(language_model.device)
                     generate_ids = language_model.generate(prompt_for_llm.input_ids, max_new_tokens=200)
-                    llm_response = language_model_tokenizer.decode(generate_ids[0], skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
+                    llm_response = language_model_tokenizer.decode(generate_ids[0], skip_special_tokens=True, clean_up_tokenization_spaces=False) 
                     print(llm_response)
                     llm_response = llm_response.split("ASSISTANT: ")[-1]
                     llm_response = llm_response.split("USER: ")[-1]
