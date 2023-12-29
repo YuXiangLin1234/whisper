@@ -45,13 +45,13 @@ from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 _PROMPT_FOR_LLM = {
     "sum-1": f"<s>[INST] <<SYS>>\n\
                         You are a helpful assistant. \
-                        Please summarize the given document. \
+                        Please summarize the given document shortly. \
                         <</SYS>>\n\n"
                         # {transcription_large} [/INST]"
                         ,
     "sum-2": f"<s>[INST] <<SYS>>\n\
                         You are a helpful assistant. \
-                        Please provide a summary of the given document and correct any error in the text. \
+                        Please provide a short summary of the given document and correct any error in the text. \
                          <</SYS>>\n\n"
                         # {transcription_large} [/INST]"
                         
