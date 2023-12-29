@@ -289,7 +289,7 @@ def transcribe(
                     generate_ids = language_model.generate(prompt_for_llm.input_ids, max_length=200)
                     llm_response = language_model_tokenizer.decode(generate_ids[0], skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]   
                     print(llm_response)
-                    llm_response = outputs[0]["generated_text"].split("ASSISTANT: ")[-1]
+                    llm_response = llm_response.split("ASSISTANT: ")[-1]
                     llm_response = llm_response.split("USER: ")[-1]
                     print(llm_response)
                     decode_options['prompt'] = llm_response
