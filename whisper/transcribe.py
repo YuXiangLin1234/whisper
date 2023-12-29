@@ -51,8 +51,8 @@ _PROMPT_FOR_LLM = {
                         ,
     "sum-2": f"<s>[INST] <<SYS>>\n\
                         You are a helpful assistant. \
-                        <</SYS>>\n\n \
-                        Please summarize the given document."
+                        Please provide a summary of the given document and correct any error in the text. \
+                         <</SYS>>\n\n"
                         # {transcription_large} [/INST]"
                         
 }
@@ -293,7 +293,6 @@ def transcribe(
                     llm_response = llm_response.split("USER: ")[-1]
                     print(llm_response)
                     decode_options['prompt'] = llm_response
-                    decode_options["prompt"] = llm_response
                 elif language_model_type == "taiwan-llama":
                     if language_model_task == "sum-1":
                         system_message = "你是一個人工智慧助理，請給我這篇文章的摘要。"
