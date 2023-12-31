@@ -45,14 +45,16 @@ from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 _PROMPT_FOR_LLM = {
     "sum-1": f"<s>[INST] <<SYS>>\n\
                         You are a helpful assistant. \
-                        Please summarize the given document shortly. \
-                        <</SYS>>\n\n"
+                        <</SYS>>\n\n \
+                        Please summarize the given document shortly. \n\n \
+                        document: "
                         # {transcription_large} [/INST]"
                         ,
     "sum-2": f"<s>[INST] <<SYS>>\n\
                         You are a helpful assistant. \
-                        Please provide a short summary of the given document and correct any error in the text. \
-                         <</SYS>>\n\n"
+                        <</SYS>>\n\n \
+                        Please provide a short summary of the given document and correct any error in the text. \n\n\
+                        document:"
                         # {transcription_large} [/INST]"
                         
 }
@@ -286,7 +288,7 @@ def transcribe(
                 if language_model_type == "llama":
                     prompt_for_llm = _PROMPT_FOR_LLM[language_model_task] + input + " [/INST]"
                     prompt_for_llm = language_model_tokenizer(prompt_for_llm , return_tensors="pt").to(language_model.device)
-                    generate_ids = language_model.generate(prompt_for_llm.input_ids, max_new_tokens=200)
+                    generate_ids = language_model.generate(prompt_for_llm.input_ids, max_new_tokens=500)
                     llm_response = language_model_tokenizer.decode(generate_ids[0], skip_special_tokens=True, clean_up_tokenization_spaces=False) 
                     print(llm_response)
                     llm_response = llm_response.split("[/INST]")[-1]
