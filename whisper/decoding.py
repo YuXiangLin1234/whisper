@@ -615,6 +615,7 @@ class DecodingTask:
 
         return tuple(tokens)
 
+<<<<<<< HEAD
     # def _get_initial_tokens(self) -> Tuple[int]:
     #     tokens = list(self.sot_sequence)
 
@@ -652,6 +653,43 @@ class DecodingTask:
     #         )
 
     #     return tuple(tokens)
+=======
+        if prefix := self.options.prefix:
+            prefix_tokens = (
+                self.tokenizer.encode(" " + prefix.strip())
+                if isinstance(prefix, str)
+                else prefix
+            )
+            if self.sample_len is not None:
+                max_prefix_len = self.n_ctx // 2 - self.sample_len
+                prefix_tokens = prefix_tokens[-max_prefix_len:]
+            tokens = tokens + prefix_tokens
+
+        # self.options.initial_prompts =====> prompt (engineering)
+        # self.options.prompts         =====> 前面的時間 
+        if prompt := self.options.prompt:
+            prompt_tokens = (
+                self.tokenizer.encode(" " + prompt.strip())
+                if isinstance(prompt, str)
+                else prompt
+            )
+            initial_prompts = self.options.initial_prompts[:self.n_ctx // 2]
+            # initial_prompts = self.options.initial_prompts[:100]
+            # self.n_ctx
+            # base => 448
+            # medium => 448
+            # large =>
+            print("n_ctx", self.n_ctx)
+            tokens = (
+                [self.tokenizer.sot_prev]
+                + initial_prompts
+                + prompt_tokens[-(self.n_ctx // 2 - 1) + len(initial_prompts) - 2:]
+                # + prompt_tokens[-(self.n_ctx // 2 - 1) :]
+                + tokens
+            )
+
+        return tuple(tokens)
+>>>>>>> 749ee7389c5835ab1486dfe223205a85a3ad7dc9
 
     def _get_suppress_tokens(self) -> Tuple[int]:
         suppress_tokens = self.options.suppress_tokens
