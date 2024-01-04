@@ -56,7 +56,7 @@ _PROMPT_FOR_LLM = {
                         # {transcription_large} [/INST]"
                         ,
     "keyword-1": f"<s>[INST] <<SYS>>\n\
-Here is a document. Please give me some text tags to describe this document. Separate tags by commas. You should only response tags without other explaination.\
+Here is a document. Please give me some keywords to describe this document. Separate keywords by commas. You should only response tags without other explaination.\
 <</SYS>>"                
 }
 
