@@ -45,18 +45,19 @@ from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 _PROMPT_FOR_LLM = {
     "sum-1": f"<s>[INST] <<SYS>>\n\
                         You are a helpful assistant. \
-                        Please summarize the given document shortly.\
-                        <</SYS>>\n\n \
-                        document: "
+                        Please summarize the following document shortly.\
+                        <</SYS>>\n\n"
                         # {transcription_large} [/INST]"
                         ,
     "sum-2": f"<s>[INST] <<SYS>>\n\
                         You are a helpful assistant. \
-                        Please provide a short summary of the given document and correct any error in the text.\
-                        <</SYS>>\n\n \
-                        document:"
+                        Please provide a short summary of the following document and correct any error in the text.\
+                        <</SYS>>"
                         # {transcription_large} [/INST]"
-                        
+                        ,
+    "keyword-1": f"<s>[INST] <<SYS>>\n\
+Here is a document. Please give some text tags to describe this document. Tags should be separated by commas.\
+<</SYS>>"                
 }
 
 def transcribe(
@@ -78,7 +79,7 @@ def transcribe(
     language_model_tokenizer = None,
     language_model_type = None,
     language_model_pipeline = None,
-    language_model_task = "summarization",
+    language_model_task = "keyword-1",
     **decode_options,
 ):
     """
@@ -290,9 +291,9 @@ def transcribe(
                     prompt_for_llm = language_model_tokenizer(prompt_for_llm , return_tensors="pt").to(language_model.device)
                     generate_ids = language_model.generate(prompt_for_llm.input_ids, max_new_tokens=500)
                     llm_response = language_model_tokenizer.decode(generate_ids[0], skip_special_tokens=True, clean_up_tokenization_spaces=False) 
-                    print(llm_response)
+                    # print(llm_response)
                     llm_response = llm_response.split("[/INST]")[-1]
-                    print(llm_response)
+                    # print(llm_response)
                     decode_options['prompt'] = llm_response
                 elif language_model_type == "taiwan-llama":
                     if language_model_task == "sum-1":
